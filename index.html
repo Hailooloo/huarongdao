@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>华容道 · 三国Q传</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet" />
+  <style>
+    body { background: radial-gradient(circle at 20% 0%, #5b1a12 0%, #2a0d09 45%, #160705 100%); font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; }
+    .bg-pattern { background-image: radial-gradient(rgba(251, 191, 36, .08) 1px, transparent 1px); background-size: 22px 22px; }
+    .panel { background: linear-gradient(160deg, rgba(120, 53, 15, .55), rgba(41, 15, 8, .75)); border: 1px solid rgba(251, 191, 36, .22); box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .06); backdrop-filter: blur(6px); }
+    .title-font { font-family: "STKaiti", "KaiTi", "楷体", serif; letter-spacing: .08em; }
+
+    .board-wrap { width: min(92vw, 58vh, 480px); }
+    .board-frame { position: relative; padding: 14px 14px 26px; border-radius: 26px; background: linear-gradient(180deg, #8b4513, #5c2a0b); box-shadow: 0 6px 0 #3b1a06, 0 24px 50px rgba(0, 0, 0, .55), inset 0 2px 0 rgba(255, 220, 160, .35); }
+    .board-inner { position: relative; aspect-ratio: 4 / 5; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(5, 1fr); border-radius: 16px; background: linear-gradient(180deg, #f3dcae, #e6c58b); box-shadow: inset 0 6px 16px rgba(80, 40, 10, .45); touch-action: none; }
+    .board-cell { border: 1px dashed rgba(120, 70, 20, .18); }
+    .goal-mark { position: absolute; left: 25%; top: 60%; width: 50%; height: 40%; border: 2px dashed rgba(192, 57, 43, .55); border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: rgba(192, 57, 43, .6); font-size: 12px; font-weight: 700; pointer-events: none; }
+    .board-exit { position: absolute; left: calc(14px + (100% - 28px) * .25); width: calc((100% - 28px) * .5); bottom: 0; height: 26px; background: linear-gradient(180deg, #e6c58b, #f8e6c0); border-radius: 0 0 10px 10px; display: flex; align-items: center; justify-content: center; color: #b45309; font-weight: 900; font-size: 12px; letter-spacing: .4em; box-shadow: inset 0 -3px 0 rgba(180, 83, 9, .35); }
+
+    .piece { position: absolute; padding: 4px; transition: left .2s cubic-bezier(.3, 1.4, .5, 1), top .2s cubic-bezier(.3, 1.4, .5, 1), transform .2s ease, opacity .5s; cursor: grab; z-index: 2; touch-action: none; user-select: none; }
+    .piece.no-anim { transition: none !important; }
+    .piece.is-dragging { z-index: 5; cursor: grabbing; }
+    .piece.is-dragging .piece-body { box-shadow: 0 10px 0 color-mix(in srgb, var(--tone) 55%, #000), 0 22px 30px rgba(0, 0, 0, .45), inset 0 2px 0 rgba(255, 255, 255, .55); transform: translateY(-4px) scale(1.02); }
+    .piece-body { position: relative; width: 100%; height: calc(100% - 6px); border-radius: 16px; overflow: hidden; border: 3px solid color-mix(in srgb, var(--tone) 80%, #fff); background: var(--tone); box-shadow: 0 6px 0 color-mix(in srgb, var(--tone) 55%, #000), 0 10px 16px rgba(60, 25, 5, .45), inset 0 2px 0 rgba(255, 255, 255, .55); transition: transform .15s, box-shadow .15s; }
+    .piece:hover .piece-body { transform: translateY(-2px); }
+    .piece-img { position: absolute; inset: 0; background-size: cover; background-position: center 20%; }
+    .piece-h .piece-img { background-position: center 30%; }
+    .piece-gloss { position: absolute; inset: 0; background: linear-gradient(160deg, rgba(255, 255, 255, .45) 0%, rgba(255, 255, 255, 0) 38%, rgba(0, 0, 0, 0) 70%, rgba(0, 0, 0, .28) 100%); pointer-events: none; }
+    .piece-name { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); padding: 1px 10px; border-radius: 999px; background: var(--tone); color: #fff; font-weight: 900; font-size: 13px; letter-spacing: .15em; white-space: nowrap; box-shadow: 0 2px 0 rgba(0, 0, 0, .3); border: 2px solid rgba(255, 255, 255, .7); font-family: "STKaiti", "KaiTi", serif; }
+    .piece-s .piece-name { font-size: 11px; padding: 0 7px; bottom: 4px; }
+    .piece-c .piece-name { font-size: 16px; padding: 2px 16px; }
+    .piece.is-selected .piece-body { outline: 3px solid #fde047; outline-offset: 2px; }
+    .piece.is-hint .piece-body { animation: hintPulse 1s ease-in-out infinite; }
+    .piece-arrow { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(253, 224, 71, .35); color: #fff; text-shadow: 0 2px 6px rgba(0, 0, 0, .6); }
+    .piece-arrow i { width: 42px; height: 42px; border-radius: 999px; background: #f59e0b; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 0 #b45309; }
+    .piece-shake { animation: shake .3s; }
+    .piece-enter { animation: pop .45s cubic-bezier(.3, 1.6, .5, 1) both; }
+    .piece-exit { transform: translateY(70%) !important; opacity: 0; transition: transform .9s ease-in, opacity .9s ease-in !important; }
+    @keyframes hintPulse { 0%, 100% { box-shadow: 0 6px 0 color-mix(in srgb, var(--tone) 55%, #000), 0 0 0 0 rgba(253, 224, 71, .9); } 50% { box-shadow: 0 6px 0 color-mix(in srgb, var(--tone) 55%, #000), 0 0 0 8px rgba(253, 224, 71, 0); } }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+    @keyframes pop { from { opacity: 0; transform: scale(.6) translateY(-20px); } to { opacity: 1; transform: none; } }
+
+    .ctrl-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 10px 0; border-radius: 14px; font-size: 12px; font-weight: 700; color: #fef3c7; background: linear-gradient(180deg, #b45309, #92400e); box-shadow: 0 4px 0 #5b2508, 0 8px 14px rgba(0, 0, 0, .3); transition: transform .12s, box-shadow .12s, filter .12s; }
+    .ctrl-btn:hover { filter: brightness(1.12); }
+    .ctrl-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #5b2508; }
+    .ctrl-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .ctrl-btn i { font-size: 20px; }
+    .ctrl-btn.is-active { background: linear-gradient(180deg, #dc2626, #991b1b); box-shadow: 0 4px 0 #5f1010; }
+    .ctrl-btn.primary { background: linear-gradient(180deg, #f59e0b, #d97706); color: #451a03; box-shadow: 0 4px 0 #92400e, 0 8px 14px rgba(0, 0, 0, .3); }
+
+    .tier-tab { color: #fde68a; background: rgba(0, 0, 0, .25); border: 1px solid rgba(251, 191, 36, .15); }
+    .tier-tab:hover { background: rgba(251, 191, 36, .12); }
+    .tier-tab.is-active { background: linear-gradient(180deg, #fbbf24, #d97706); color: #451a03; box-shadow: 0 3px 0 #92400e; }
+    .level-btn { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 14px; color: #fef3c7; background: linear-gradient(180deg, #7c2d12, #5a1f0c); border: 1px solid rgba(251, 191, 36, .2); box-shadow: 0 3px 0 #2e0f05; transition: transform .15s, filter .15s; }
+    .level-btn:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.2); }
+    .level-btn.is-cleared { background: linear-gradient(180deg, #a16207, #78350f); }
+    .level-btn.is-current { outline: 2px solid #fde047; outline-offset: 2px; background: linear-gradient(180deg, #f59e0b, #b45309); color: #451a03; }
+    .level-btn.is-locked { opacity: .45; cursor: not-allowed; }
+
+    .roster-card { display: flex; flex-direction: column; align-items: center; color: #fef3c7; }
+    .roster-img { width: 52px; height: 52px; border-radius: 14px; background-size: cover; background-position: center 18%; border: 3px solid var(--tone); box-shadow: 0 3px 0 color-mix(in srgb, var(--tone) 55%, #000); }
+
+    #levelPanel { transition: transform .3s ease; }
+    @media (max-width: 1023px) { #levelPanel { transform: translateX(105%); } #levelPanel.is-open { transform: translateX(0); } }
+
+    #toast { position: fixed; left: 50%; top: 18px; transform: translate(-50%, -140%); transition: transform .3s cubic-bezier(.3, 1.4, .5, 1); z-index: 60; }
+    #toast.is-show { transform: translate(-50%, 0); }
+    #winModal .modal-card { transform: scale(.85); opacity: 0; transition: all .25s cubic-bezier(.3, 1.4, .5, 1); }
+    #winModal.is-open .modal-card { transform: scale(1); opacity: 1; }
+    .win-star { display: inline-block; animation: starIn .5s cubic-bezier(.3, 1.8, .5, 1) both; }
+    @keyframes starIn { from { transform: scale(0) rotate(-90deg); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .confetti-bit { position: absolute; top: -12px; width: 8px; height: 14px; border-radius: 2px; animation-name: fall; animation-timing-function: linear; animation-fill-mode: forwards; }
+    @keyframes fall { to { top: 105%; transform: rotate(720deg) translateX(40px); } }
+  </style>
+</head>
+<body class="min-h-screen text-amber-50 bg-pattern">
+  <div id="toast" class="flex items-center gap-2 rounded-full bg-amber-100 text-amber-900 px-5 py-2.5 font-bold shadow-2xl"></div>
+
+  <header class="max-w-[1440px] mx-auto px-4 lg:px-8 pt-5 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-300 to-orange-600 flex items-center justify-center text-2xl font-black text-red-900 shadow-lg shadow-black/40 title-font">华</div>
+      <div>
+        <h1 class="title-font text-2xl lg:text-3xl font-black text-amber-200 drop-shadow">华容道 · 三国Q传</h1>
+        <p class="text-xs text-amber-100/60">助曹操突出重围，共 <span id="levelTotal">0</span> 道精选关卡</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <div class="hidden sm:flex items-center gap-4 panel rounded-2xl px-4 py-2 text-sm">
+        <span class="flex items-center gap-1.5"><i class="ri-star-fill text-amber-400"></i><b id="totalStars">0/0</b></span>
+        <span class="flex items-center gap-1.5"><i class="ri-trophy-line text-amber-300"></i><b id="totalCleared">0/0</b></span>
+      </div>
+      <button id="btnHelp" class="w-10 h-10 rounded-xl panel flex items-center justify-center hover:bg-amber-500/20 transition" title="玩法说明"><i class="ri-question-line text-lg"></i></button>
+      <button id="btnSound" class="w-10 h-10 rounded-xl panel flex items-center justify-center hover:bg-amber-500/20 transition" title="音效"></button>
+      <button id="btnLevels" class="lg:hidden h-10 px-3 rounded-xl bg-amber-500 text-amber-950 font-bold flex items-center gap-1"><i class="ri-apps-2-line"></i>选关</button>
+    </div>
+  </header>
+
+  <main class="max-w-[1440px] mx-auto px-4 lg:px-8 py-6 grid gap-6 lg:grid-cols-[300px_1fr_340px] items-start">
+    <aside class="space-y-4 order-2 lg:order-1">
+      <section class="panel rounded-3xl p-5">
+        <span id="levelTier"></span>
+        <h2 id="levelName" class="title-font text-3xl font-black text-amber-100 mt-2"></h2>
+        <div class="grid grid-cols-3 gap-2 mt-4 text-center">
+          <div class="rounded-2xl bg-black/25 py-2.5">
+            <div class="text-[11px] text-amber-100/60">已走步数</div>
+            <div id="stepCount" class="text-2xl font-black text-amber-300">0</div>
+          </div>
+          <div class="rounded-2xl bg-black/25 py-2.5">
+            <div class="text-[11px] text-amber-100/60">最优步数</div>
+            <div id="optimalSteps" class="text-2xl font-black text-emerald-300">0</div>
+          </div>
+          <div class="rounded-2xl bg-black/25 py-2.5">
+            <div class="text-[11px] text-amber-100/60">用时</div>
+            <div id="timeCount" class="text-2xl font-black text-sky-300 tabular-nums">00:00</div>
+          </div>
+        </div>
+        <div class="mt-4 flex items-center justify-between rounded-2xl bg-black/20 px-3 py-2">
+          <span class="text-xs text-amber-100/70">当前评级</span>
+          <span id="liveStars" class="flex gap-0.5"></span>
+        </div>
+        <div class="mt-3 text-xs text-amber-100/80 space-y-1.5" id="starRule"></div>
+        <div class="mt-3 flex items-center justify-between text-xs rounded-2xl bg-black/20 px-3 py-2">
+          <span class="text-amber-100/70">最佳记录</span>
+          <span id="bestRecord" class="flex items-center gap-2"></span>
+        </div>
+      </section>
+      <section class="panel rounded-3xl p-5">
+        <h3 class="font-bold text-amber-200 flex items-center gap-2 mb-3"><i class="ri-team-line"></i>本关出场武将</h3>
+        <div id="roster" class="grid grid-cols-4 gap-3"></div>
+      </section>
+    </aside>
+
+    <section class="order-1 lg:order-2 flex flex-col items-center">
+      <div class="board-wrap relative">
+        <div id="board"></div>
+        <div id="thinking" class="hidden absolute inset-0 rounded-[26px] bg-black/40 flex items-center justify-center z-10">
+          <div class="flex items-center gap-2 rounded-full bg-amber-100 text-amber-900 px-4 py-2 font-bold"><i class="ri-loader-4-line animate-spin"></i>军师推演中…</div>
+        </div>
+      </div>
+      <div class="board-wrap grid grid-cols-6 gap-2 mt-6">
+        <button id="btnPrev" class="ctrl-btn"><i class="ri-skip-back-line"></i>上一关</button>
+        <button id="btnUndo" class="ctrl-btn"><i class="ri-arrow-go-back-line"></i>撤销</button>
+        <button id="btnReset" class="ctrl-btn"><i class="ri-restart-line"></i>重来</button>
+        <button id="btnHint" class="ctrl-btn primary"><i class="ri-lightbulb-flash-line"></i>提示</button>
+        <button id="btnDemo" class="ctrl-btn"><i class="ri-play-circle-line"></i><span>演示</span></button>
+        <button id="btnNext" class="ctrl-btn"><i class="ri-skip-forward-line"></i>下一关</button>
+      </div>
+      <p class="text-xs text-amber-100/50 mt-4 text-center">拖动棋子滑行 · 点击棋子朝空位移动 · 键盘方向键移动 / Tab 切换 / Z 撤销 / H 提示</p>
+    </section>
+
+    <div id="drawerMask" class="hidden fixed inset-0 bg-black/60 z-30 lg:hidden"></div>
+    <aside id="levelPanel" class="panel rounded-l-3xl lg:rounded-3xl p-5 fixed lg:static right-0 top-0 h-full lg:h-auto w-[88%] max-w-sm lg:w-auto lg:max-w-none z-40 overflow-y-auto order-3 bg-stone-900 lg:bg-transparent">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold text-amber-200 flex items-center gap-2"><i class="ri-map-2-line"></i>关卡地图</h3>
+        <button id="btnCloseDrawer" class="lg:hidden w-8 h-8 rounded-lg bg-black/30"><i class="ri-close-line"></i></button>
+      </div>
+      <div id="tierTabs" class="flex gap-2"></div>
+      <div id="tierProgress" class="mt-4"></div>
+      <div id="levelGrid" class="grid grid-cols-5 gap-2.5 mt-4"></div>
+      <button id="btnResetAll" class="mt-5 w-full text-xs text-amber-100/50 hover:text-rose-300 transition flex items-center justify-center gap-1"><i class="ri-delete-bin-line"></i>清空通关记录</button>
+    </aside>
+  </main>
+
+  <footer class="text-center text-xs text-amber-100/50 pb-6">
+    <p>由 <a href="https://with.woa.com/" style="color: #8A2BE2;" target="_blank">With</a> 通过自然语言生成</p>
+  </footer>
+
+  <div id="winModal" class="hidden fixed inset-0 z-50 bg-black/65 flex items-center justify-center p-4">
+    <div id="confetti" class="pointer-events-none fixed inset-0 overflow-hidden"></div>
+    <div class="modal-card relative w-full max-w-md rounded-3xl bg-gradient-to-b from-amber-100 to-amber-50 text-amber-950 p-7 text-center shadow-2xl">
+      <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-24 h-24 rounded-3xl border-4 border-white shadow-xl bg-cover" style="background-image:url('./assets/caocao.jpg');background-position:center 18%"></div>
+      <div id="winBadge" class="hidden absolute top-4 right-4 rounded-full bg-rose-500 text-white text-xs font-bold px-2.5 py-1">新纪录</div>
+      <h3 id="winTitle" class="title-font text-3xl font-black mt-10 text-red-800"></h3>
+      <p id="winLevel" class="text-sm text-amber-800/70 mt-1"></p>
+      <div id="winStars" class="flex justify-center gap-2 my-4"></div>
+      <div class="grid grid-cols-3 gap-2">
+        <div class="rounded-2xl bg-amber-200/60 py-2"><div class="text-[11px] text-amber-800/70">用步</div><div id="winSteps" class="text-xl font-black"></div></div>
+        <div class="rounded-2xl bg-amber-200/60 py-2"><div class="text-[11px] text-amber-800/70">最优</div><div id="winOptimal" class="text-xl font-black"></div></div>
+        <div class="rounded-2xl bg-amber-200/60 py-2"><div class="text-[11px] text-amber-800/70">用时</div><div id="winTime" class="text-xl font-black"></div></div>
+      </div>
+      <p id="winNote" class="text-sm text-amber-800 mt-4"></p>
+      <div class="flex gap-3 mt-5">
+        <button data-action="retry" class="flex-1 rounded-2xl py-3 font-bold bg-amber-200 hover:bg-amber-300 transition"><i class="ri-restart-line"></i> 再来一次</button>
+        <button id="winNext" data-action="next" class="flex-1 rounded-2xl py-3 font-bold bg-gradient-to-b from-orange-500 to-red-600 text-white shadow-lg hover:brightness-110 transition">下一关 <i class="ri-arrow-right-line"></i></button>
+      </div>
+      <button data-action="close" class="mt-3 text-xs text-amber-800/60 hover:text-amber-900">查看棋盘</button>
+    </div>
+  </div>
+
+  <div id="helpModal" class="hidden fixed inset-0 z-50 bg-black/65 flex items-center justify-center p-4">
+    <div class="w-full max-w-lg rounded-3xl bg-amber-50 text-amber-950 p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="title-font text-2xl font-black text-red-800">玩法说明</h3>
+        <button data-close class="w-8 h-8 rounded-lg hover:bg-amber-200"><i class="ri-close-line text-xl"></i></button>
+      </div>
+      <ul class="space-y-2 text-sm">
+        <li class="flex gap-2"><i class="ri-checkbox-circle-fill text-emerald-500"></i>棋盘 4×5，把 2×2 的曹操移到底部出口（虚线框处）即为胜利。</li>
+        <li class="flex gap-2"><i class="ri-checkbox-circle-fill text-emerald-500"></i>棋子只能沿空位直线滑动，不能越过或旋转；一次滑行 1~2 格计为 1 步。</li>
+        <li class="flex gap-2"><i class="ri-checkbox-circle-fill text-emerald-500"></i>步数不超过最优解得三星，不超过 1.5 倍得两星，脱困即得一星。</li>
+        <li class="flex gap-2"><i class="ri-checkbox-circle-fill text-emerald-500"></i>“提示”给出最优下一步；“演示”由军师自动走完，演示通关不计成绩。</li>
+        <li class="flex gap-2"><i class="ri-checkbox-circle-fill text-emerald-500"></i>三档难度各自独立，通关上一关解锁下一关，进度自动保存在本机。</li>
+      </ul>
+    </div>
+  </div>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
