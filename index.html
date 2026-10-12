@@ -2,14 +2,16 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>华容道 · 三国Q传</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet" />
   <style>
-    body { background: radial-gradient(circle at 20% 0%, #5b1a12 0%, #2a0d09 45%, #160705 100%); font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; }
-    .bg-pattern { background-image: radial-gradient(rgba(251, 191, 36, .08) 1px, transparent 1px); background-size: 22px 22px; }
-    .panel { background: linear-gradient(160deg, rgba(120, 53, 15, .55), rgba(41, 15, 8, .75)); border: 1px solid rgba(251, 191, 36, .22); box-shadow: 0 10px 30px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .06); backdrop-filter: blur(6px); }
+    html, body { overscroll-behavior: none; }
+    body { background: radial-gradient(circle at 20% 0%, #f0f9ff 0%, #dbeafe 45%, #bfdbfe 100%) fixed; font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+    .bg-pattern { background-image: radial-gradient(rgba(30, 64, 175, .1) 1px, transparent 1px); background-size: 22px 22px; }
+    .panel { background: linear-gradient(160deg, rgba(37, 99, 235, .92), rgba(30, 58, 138, .95)); border: 1px solid rgba(147, 197, 253, .45); box-shadow: 0 10px 24px rgba(30, 64, 175, .25), inset 0 1px 0 rgba(255, 255, 255, .15); backdrop-filter: blur(6px); }
+
     .title-font { font-family: "STKaiti", "KaiTi", "楷体", serif; letter-spacing: .08em; }
 
     .board-wrap { width: min(92vw, 58vh, 480px); }
@@ -50,10 +52,10 @@
     .ctrl-btn.is-active { background: linear-gradient(180deg, #dc2626, #991b1b); box-shadow: 0 4px 0 #5f1010; }
     .ctrl-btn.primary { background: linear-gradient(180deg, #f59e0b, #d97706); color: #451a03; box-shadow: 0 4px 0 #92400e, 0 8px 14px rgba(0, 0, 0, .3); }
 
-    .tier-tab { color: #fde68a; background: rgba(0, 0, 0, .25); border: 1px solid rgba(251, 191, 36, .15); }
+    .tier-tab { color: #fde68a; background: linear-gradient(180deg, #1e40af, #1e3a8a); border: 1px solid rgba(147, 197, 253, .3); }
     .tier-tab:hover { background: rgba(251, 191, 36, .12); }
     .tier-tab.is-active { background: linear-gradient(180deg, #fbbf24, #d97706); color: #451a03; box-shadow: 0 3px 0 #92400e; }
-    .level-btn { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 14px; color: #fef3c7; background: linear-gradient(180deg, #7c2d12, #5a1f0c); border: 1px solid rgba(251, 191, 36, .2); box-shadow: 0 3px 0 #2e0f05; transition: transform .15s, filter .15s; }
+    .level-btn { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 14px; color: #fef3c7; background: linear-gradient(180deg, #1e4fb8, #163a8a); border: 1px solid rgba(147, 197, 253, .25); box-shadow: 0 3px 0 #0b1d4d; transition: transform .15s, filter .15s; }
     .level-btn:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.2); }
     .level-btn.is-cleared { background: linear-gradient(180deg, #a16207, #78350f); }
     .level-btn.is-current { outline: 2px solid #fde047; outline-offset: 2px; background: linear-gradient(180deg, #f59e0b, #b45309); color: #451a03; }
@@ -63,7 +65,23 @@
     .roster-img { width: 52px; height: 52px; border-radius: 14px; background-size: cover; background-position: center 18%; border: 3px solid var(--tone); box-shadow: 0 3px 0 color-mix(in srgb, var(--tone) 55%, #000); }
 
     #levelPanel { transition: transform .3s ease; }
-    @media (max-width: 1023px) { #levelPanel { transform: translateX(105%); } #levelPanel.is-open { transform: translateX(0); } }
+    @media (max-width: 1023px) {
+      #levelPanel { transform: translateX(105%); padding-top: max(20px, env(safe-area-inset-top)); padding-bottom: max(20px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 100%); border: none; box-shadow: none; backdrop-filter: none; }
+      #levelPanel.is-open { transform: translateX(0); }
+      .board-wrap { width: min(94vw, calc((100dvh - 270px) * .8), 480px); }
+      .board-frame { padding: 10px 10px 22px; border-radius: 20px; }
+      .board-exit { left: calc(10px + (100% - 20px) * .25); width: calc((100% - 20px) * .5); height: 22px; }
+      .piece { padding: 3px; }
+      .piece-body { border-radius: 12px; border-width: 2px; }
+      .piece-name { font-size: 12px; padding: 0 8px; }
+      .piece-c .piece-name { font-size: 14px; padding: 1px 12px; }
+      .piece-s .piece-name { font-size: 10px; padding: 0 5px; bottom: 3px; }
+      .ctrl-btn { padding: 8px 0; font-size: 11px; border-radius: 12px; }
+      .ctrl-btn i { font-size: 18px; }
+    }
+    @media (max-width: 1023px) and (orientation: portrait) and (max-height: 700px) {
+      .board-wrap { width: min(94vw, calc((100dvh - 250px) * .8), 480px); }
+    }
 
     #toast { position: fixed; left: 50%; top: 18px; transform: translate(-50%, -140%); transition: transform .3s cubic-bezier(.3, 1.4, .5, 1); z-index: 60; }
     #toast.is-show { transform: translate(-50%, 0); }
@@ -78,15 +96,15 @@
 <body class="min-h-screen text-amber-50 bg-pattern">
   <div id="toast" class="flex items-center gap-2 rounded-full bg-amber-100 text-amber-900 px-5 py-2.5 font-bold shadow-2xl"></div>
 
-  <header class="max-w-[1440px] mx-auto px-4 lg:px-8 pt-5 flex items-center justify-between gap-3">
-    <div class="flex items-center gap-3">
-      <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-300 to-orange-600 flex items-center justify-center text-2xl font-black text-red-900 shadow-lg shadow-black/40 title-font">华</div>
-      <div>
-        <h1 class="title-font text-2xl lg:text-3xl font-black text-amber-200 drop-shadow">华容道 · 三国Q传</h1>
-        <p class="text-xs text-amber-100/60">助曹操突出重围，共 <span id="levelTotal">0</span> 道精选关卡</p>
+  <header class="max-w-[1440px] mx-auto px-3 lg:px-8 pt-3 lg:pt-5 flex items-center justify-between gap-2">
+    <div class="flex items-center gap-2 lg:gap-3 min-w-0">
+      <div class="w-9 h-9 lg:w-12 lg:h-12 shrink-0 rounded-xl lg:rounded-2xl bg-gradient-to-br from-amber-300 to-orange-600 flex items-center justify-center text-lg lg:text-2xl font-black text-red-900 shadow-lg shadow-black/40 title-font">华</div>
+      <div class="min-w-0">
+        <h1 class="title-font text-lg sm:text-2xl lg:text-3xl font-black text-blue-900 truncate">华容道 · 三国Q传</h1>
+        <p class="hidden sm:block text-xs text-blue-800/70">助曹操突出重围，共 <span id="levelTotal">0</span> 道精选关卡</p>
       </div>
     </div>
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-1.5 lg:gap-2 shrink-0">
       <div class="hidden sm:flex items-center gap-4 panel rounded-2xl px-4 py-2 text-sm">
         <span class="flex items-center gap-1.5"><i class="ri-star-fill text-amber-400"></i><b id="totalStars">0/0</b></span>
         <span class="flex items-center gap-1.5"><i class="ri-trophy-line text-amber-300"></i><b id="totalCleared">0/0</b></span>
@@ -97,7 +115,7 @@
     </div>
   </header>
 
-  <main class="max-w-[1440px] mx-auto px-4 lg:px-8 py-6 grid gap-6 lg:grid-cols-[300px_1fr_340px] items-start">
+  <main class="max-w-[1440px] mx-auto px-3 lg:px-8 py-3 lg:py-6 grid gap-4 lg:gap-6 lg:grid-cols-[300px_1fr_340px] items-start">
     <aside class="space-y-4 order-2 lg:order-1">
       <section class="panel rounded-3xl p-5">
         <span id="levelTier"></span>
@@ -133,13 +151,24 @@
     </aside>
 
     <section class="order-1 lg:order-2 flex flex-col items-center">
+      <div class="lg:hidden board-wrap panel rounded-2xl px-3 py-2 mb-3 flex items-center justify-between gap-2">
+        <div class="min-w-0">
+          <div data-bind="tierLabel" class="text-[11px] text-amber-200/80 truncate"></div>
+          <div data-bind="name" class="title-font text-base font-black text-amber-100 truncate"></div>
+        </div>
+        <div class="flex gap-3 shrink-0 text-center">
+          <div><div class="text-[10px] text-amber-100/60">步数</div><div data-bind="steps" class="font-black text-amber-300 leading-tight">0</div></div>
+          <div><div class="text-[10px] text-amber-100/60">最优</div><div data-bind="optimal" class="font-black text-emerald-300 leading-tight">0</div></div>
+          <div><div class="text-[10px] text-amber-100/60">用时</div><div data-bind="time" class="font-black text-sky-300 leading-tight tabular-nums">00:00</div></div>
+        </div>
+      </div>
       <div class="board-wrap relative">
         <div id="board"></div>
         <div id="thinking" class="hidden absolute inset-0 rounded-[26px] bg-black/40 flex items-center justify-center z-10">
           <div class="flex items-center gap-2 rounded-full bg-amber-100 text-amber-900 px-4 py-2 font-bold"><i class="ri-loader-4-line animate-spin"></i>军师推演中…</div>
         </div>
       </div>
-      <div class="board-wrap grid grid-cols-6 gap-2 mt-6">
+      <div class="board-wrap grid grid-cols-6 gap-1.5 lg:gap-2 mt-4 lg:mt-6">
         <button id="btnPrev" class="ctrl-btn"><i class="ri-skip-back-line"></i>上一关</button>
         <button id="btnUndo" class="ctrl-btn"><i class="ri-arrow-go-back-line"></i>撤销</button>
         <button id="btnReset" class="ctrl-btn"><i class="ri-restart-line"></i>重来</button>
@@ -147,25 +176,22 @@
         <button id="btnDemo" class="ctrl-btn"><i class="ri-play-circle-line"></i><span>演示</span></button>
         <button id="btnNext" class="ctrl-btn"><i class="ri-skip-forward-line"></i>下一关</button>
       </div>
-      <p class="text-xs text-amber-100/50 mt-4 text-center">拖动棋子滑行 · 点击棋子朝空位移动 · 键盘方向键移动 / Tab 切换 / Z 撤销 / H 提示</p>
+      <p class="hidden lg:block text-xs text-blue-900/60 mt-4 text-center">拖动棋子滑行 · 点击棋子朝空位移动 · 键盘方向键移动 / Tab 切换 / Z 撤销 / H 提示</p>
+      <p class="lg:hidden text-xs text-blue-900/60 mt-3 text-center">按住棋子拖动滑行 · 轻点棋子朝空位移动</p>
     </section>
 
     <div id="drawerMask" class="hidden fixed inset-0 bg-black/60 z-30 lg:hidden"></div>
-    <aside id="levelPanel" class="panel rounded-l-3xl lg:rounded-3xl p-5 fixed lg:static right-0 top-0 h-full lg:h-auto w-[88%] max-w-sm lg:w-auto lg:max-w-none z-40 overflow-y-auto order-3 bg-stone-900 lg:bg-transparent">
+    <aside id="levelPanel" class="panel lg:rounded-3xl p-5 fixed lg:static inset-0 lg:inset-auto h-full lg:h-auto w-full lg:w-auto z-40 overflow-y-auto order-3">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="font-bold text-amber-200 flex items-center gap-2"><i class="ri-map-2-line"></i>关卡地图</h3>
-        <button id="btnCloseDrawer" class="lg:hidden w-8 h-8 rounded-lg bg-black/30"><i class="ri-close-line"></i></button>
+        <h3 class="font-bold text-blue-900 lg:text-amber-200 flex items-center gap-2 text-lg lg:text-base"><i class="ri-map-2-line"></i>关卡地图</h3>
+        <button id="btnCloseDrawer" class="lg:hidden h-9 px-3 rounded-xl bg-amber-500 text-amber-950 font-bold text-sm flex items-center gap-1"><i class="ri-gamepad-line"></i>进入棋盘</button>
       </div>
       <div id="tierTabs" class="flex gap-2"></div>
       <div id="tierProgress" class="mt-4"></div>
-      <div id="levelGrid" class="grid grid-cols-5 gap-2.5 mt-4"></div>
-      <button id="btnResetAll" class="mt-5 w-full text-xs text-amber-100/50 hover:text-rose-300 transition flex items-center justify-center gap-1"><i class="ri-delete-bin-line"></i>清空通关记录</button>
+      <div id="levelGrid" class="grid grid-cols-5 sm:grid-cols-8 lg:grid-cols-5 gap-2.5 mt-4"></div>
+      <button id="btnResetAll" class="mt-5 w-full text-xs text-blue-900/60 lg:text-amber-100/60 hover:text-rose-500 transition flex items-center justify-center gap-1"><i class="ri-delete-bin-line"></i>清空通关记录</button>
     </aside>
   </main>
-
-  <footer class="text-center text-xs text-amber-100/50 pb-6">
-    <p>由 <a href="https://with.woa.com/" style="color: #8A2BE2;" target="_blank">With</a> 通过自然语言生成</p>
-  </footer>
 
   <div id="winModal" class="hidden fixed inset-0 z-50 bg-black/65 flex items-center justify-center p-4">
     <div id="confetti" class="pointer-events-none fixed inset-0 overflow-hidden"></div>
