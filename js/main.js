@@ -274,6 +274,7 @@ function init() {
   const ok = getLevel(last.tier, last.index) && isUnlocked(last.tier, last.index);
   loadLevel(ok ? last.tier : 'easy', ok ? last.index : 0);
   $('#levelGrid').dataset.tier = app.tier;
+  if (window.matchMedia('(max-width: 1023px)').matches) openDrawer();
 }
 
 init();

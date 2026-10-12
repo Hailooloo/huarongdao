@@ -4,6 +4,12 @@ import { getRecord, summary } from './storage.js';
 
 const $ = (sel) => document.querySelector(sel);
 
+function bindText(key, value) {
+  document.querySelectorAll(`[data-bind="${key}"]`).forEach((el) => {
+    el.textContent = value;
+  });
+}
+
 export function starsHTML(n, size = 'text-base') {
   return [1, 2, 3]
     .map((i) => `<i class="${i <= n ? 'ri-star-fill text-amber-400' : 'ri-star-line text-stone-500/60'} ${size}"></i>`)
@@ -47,11 +53,11 @@ export function renderLevelGrid(tierKey, currentIndex) {
   const sum = summary(LEVELS).byTier[tierKey] || { cleared: 0, total: list.length, stars: 0 };
   const pct = sum.total ? Math.round((sum.cleared / sum.total) * 100) : 0;
   $('#tierProgress').innerHTML = `
-    <div class="flex items-center justify-between text-xs text-amber-100/80 mb-1.5">
+    <div class="flex items-center justify-between text-xs text-blue-900 lg:text-amber-100/80 mb-1.5">
       <span>${tier.title}进度 ${sum.cleared}/${sum.total}</span>
-      <span class="flex items-center gap-1"><i class="ri-star-fill text-amber-400"></i>${sum.stars}/${sum.total * 3}</span>
+      <span class="flex items-center gap-1"><i class="ri-star-fill text-amber-500 lg:text-amber-400"></i>${sum.stars}/${sum.total * 3}</span>
     </div>
-    <div class="h-2 rounded-full bg-black/30 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-700" style="width:${pct}%"></div></div>`;
+    <div class="h-2 rounded-full bg-blue-900/20 lg:bg-black/30 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500 transition-all duration-700" style="width:${pct}%"></div></div>`;
   $('#levelGrid').innerHTML = list
     .map((lv, i) => {
       const rec = getRecord(lv.id);
@@ -77,6 +83,9 @@ export function renderInfo(level) {
   $('#levelTier').innerHTML = `<i class="${tier.icon}"></i>${tier.title} · 第 ${level.no} 关`;
   $('#levelName').textContent = level.name;
   $('#optimalSteps').textContent = level.optimal;
+  bindText('tierLabel', `${tier.title} · 第 ${level.no} 关`);
+  bindText('name', level.name);
+  bindText('optimal', level.optimal);
   $('#bestRecord').innerHTML = rec
     ? `<span class="flex">${starsHTML(rec.stars, 'text-sm')}</span><span>${rec.steps} 步 · ${formatTime(rec.time)}</span>`
     : '<span class="text-amber-100/60">尚未通关</span>';
@@ -108,6 +117,8 @@ export function renderRoster(level) {
 export function updateStats({ steps, time, optimal }) {
   $('#stepCount').textContent = steps;
   $('#timeCount').textContent = formatTime(time);
+  bindText('steps', steps);
+  bindText('time', formatTime(time));
   const stars = calcStars(Math.max(steps, 0), optimal);
   $('#liveStars').innerHTML = starsHTML(steps === 0 ? 3 : stars, 'text-lg');
 }
